@@ -1,0 +1,16 @@
+title = "Configuration"
+
+[info]
+kernel = true
+hostname = false
+type_ = true
+uptime = false
+cpu = false
+gpu = true
+local_ip = true
+used_memory = false
+total_memory = true
+
+[ascii]
+distro = "default"
+size = "default"
