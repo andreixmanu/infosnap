@@ -95,8 +95,6 @@ fn get_gpu_info() -> String
     return String::new(); // return an empty string if no match is found
 }
 
-
-
 pub fn get_os_info() -> OsInfo
 {
     let mut sys = System::new_all();

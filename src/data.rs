@@ -10,7 +10,7 @@ pub struct OsInfo
     // pub cpu_freq : f32,
     pub gpu: String,
     pub local_ip: String,
-    // pub public_ip: String,
+    //pub public_ip: String,
     pub used_memory: f32,
     pub total_memory: f32,
 }

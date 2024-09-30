@@ -1,33 +1,15 @@
-use std::error::Error;
 use std::fmt::Display;
 use serde::Deserialize;
 use std::fs;
 use toml;
 use serde_derive;
 use crate::data::OsInfo;
-use crossterm::{
-    ExecutableCommand,
-    cursor::{MoveTo, Hide, Show},
-    terminal::{Clear, ClearType},
-    style::{Print, PrintStyledContent, Stylize},
-};
-use std::io::{stdout, Write};
+use std::io::{Write};
 
 #[derive(Deserialize, Debug)]
-struct Config
-{
-    title : String,
-    info : Info,
-    ascii : Ascii
-}
-impl Display for Config
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
-    {
-        //write!(f, "Title: {}\n", self.title)?;
-        write!(f, "Info: {}\n", self.info)?;
-        write!(f, "Ascii: {}", self.ascii)
-    }
+struct Config{
+    title: String,
+    info: Info
 }
 
 #[derive(Deserialize, Debug)]
@@ -38,13 +20,12 @@ struct Info
     type_: bool,
     uptime: bool,
     cpu: bool,
-    // pub cpu_freq : bool,
     gpu: bool,
     local_ip: bool,
-    // public_ip: bool,
     used_memory: bool,
     total_memory: bool,
 }
+
 impl Display for Info
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
@@ -57,49 +38,76 @@ impl Display for Info
         write!(f, "GPU: {}\n", self.gpu)?;
         write!(f, "Local IP: {}\n", self.local_ip)?;
         //write!(f, "Public IP: {}\n", self.public_ip)?;
-        write!(f, "Used Memory: {}\n", self.used_memory)?;
-        write!(f, "Total Memory: {}\n", self.total_memory)
+        write!(f, "Used Memory: {}MB\n", self.used_memory)?;
+        write!(f, "Total Memory: {}MB\n", self.total_memory)
     }
 }
 
+impl Iterator for Info
+{
+    type Item = &'static str;
 
-#[derive(Deserialize, Debug)]
-struct Ascii
-{
-    distro : String,
-    size : String
-}
-impl Display for Ascii
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
+    fn next(&mut self) -> Option<Self::Item>
     {
-        write!(f, "Distro: {}\n", self.distro)?;
-        write!(f, "Size: {}\n", self.size)
+        if self.kernel {
+            self.kernel = false;
+            return Some("kernel");
+        }
+        if self.hostname {
+            self.hostname = false;
+            return Some("hostname");
+        }
+        if self.type_ {
+            self.type_ = false;
+            return Some("type");
+        }
+        if self.uptime {
+            self.uptime = false;
+            return Some("uptime");
+        }
+        if self.cpu {
+            self.cpu = false;
+            return Some("cpu");
+        }
+        if self.gpu {
+            self.gpu = false;
+            return Some("gpu");
+        }
+        if self.local_ip {
+            self.local_ip = false;
+            return Some("local_ip");
+        }
+        // if self.public_ip {
+        //     self.public_ip = false;
+        //     return Some("public_ip");
+        // }
+        if self.used_memory {
+            self.used_memory = false;
+            return Some("used_memory");
+        }
+        if self.total_memory {
+            self.total_memory = false;
+            return Some("total_memory");
+        }
+        None
     }
 }
 
-pub fn print_config(os_info: OsInfo)
-{
-    let config = fetch_config();
+pub fn print_config(os_info: OsInfo) {
+    let mut config = fetch_config();
 
-    // associate each field with its corresponding value
-    let info_fields = [
-        (&config.info.kernel, os_info.kernel),
-        (&config.info.hostname, os_info.hostname),
-        (&config.info.type_, os_info.type_),
-        (&config.info.uptime, os_info.uptime.to_string()),
-        (&config.info.cpu, os_info.cpu),
-        (&config.info.gpu, os_info.gpu),
-        (&config.info.local_ip, os_info.local_ip),
-        (&config.info.used_memory, os_info.used_memory.to_string()),
-        (&config.info.total_memory, os_info.total_memory.to_string()),
-    ];
-
-    let ascii = &config.ascii;
-
-    for (field, os_info) in &info_fields {
-        if **field {
-            println!("{}", os_info);
+    for field in config.info{
+        match field {
+            "kernel" => println!("Kernel: {}", os_info.kernel),
+            "hostname" => println!("Hostname: {}", os_info.hostname),
+            "type" => println!("Type: {}", os_info.type_),
+            "uptime" => println!("Uptime: {}", os_info.uptime),
+            "cpu" => println!("CPU: {}", os_info.cpu),
+            "gpu" => println!("GPU: {}", os_info.gpu),
+            "local_ip" => println!("Local IP: {}", os_info.local_ip),
+            "used_memory" => println!("Used Memory: {}MB", os_info.used_memory),
+            "total_memory" => println!("Total Memory: {}MB", os_info.total_memory),
+            _ => { println!("Unknown field: {}", field); }
         }
     }
 }
@@ -108,6 +116,6 @@ fn fetch_config() -> Config
 {
     let toml_str = fs::read_to_string("config.toml").expect("Failed to read TOML file");
     let config: Config = toml::from_str(&toml_str).expect("Failed to parse TOML");
-    return config;
+    config
 }
 

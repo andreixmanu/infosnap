@@ -2,13 +2,13 @@ title = "Configuration"
 
 [info]
 kernel = true
-hostname = false
+hostname = true
 type_ = true
-uptime = false
-cpu = false
-gpu = true
-local_ip = true
-used_memory = false
+uptime = true
+cpu = true
+gpu = false
+local_ip = false
+used_memory = true
 total_memory = true
 
 [ascii]
